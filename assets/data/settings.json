@@ -1,0 +1,57 @@
+{
+    "current_theme": "light",
+    "setup": {
+        "title": "Calculadora",
+        "icon": "calculator.ico",
+        "width": 260,
+        "height": 400
+    },
+    "themes": [
+        {
+            "name": "light",
+            "background": "#ffffff",
+            "display": {
+                "background": "#f7f7f7",
+                "selectbackground": "#7d7d7d",
+                "selectforeground": "#ffffff",
+                "foreground": "#000000",
+                "border": 0,
+                "justify": "right",
+                "relief": "flat",
+                "highlightthickness": 0,
+                "font": "Console 24 bold"
+
+            },
+            "preview": {
+                "state": "readonly",
+                "readonlybackground": "#f7f7f7",
+                "foreground": "#646464",
+                "border": 0,
+                "justify": "right",
+                "relief": "flat",
+                "highlightthickness": 0,
+                "font": "Console 9"
+            },
+            "buttons": {
+                "background": "#e1e1e1",
+                "foreground": "#000000",
+                "highlightthickness": 0,
+                "border": 0,
+                "font": "Cambria 12 bold",
+                "relief": "raised",
+                "activebackground": "#cdcdcd",
+                "activeforeground": "#777777"
+            },
+            "equal_button": {
+                "background": "#7d7d7d",
+                "foreground": "#ffffff",
+                "activebackground": "#9b9b9b",
+                "activeforeground": "#fafafa"
+            },
+            "disabled_button": {
+                "state": "disabled",
+                "background": "#e1e1e1"
+            }
+        }
+    ]
+}

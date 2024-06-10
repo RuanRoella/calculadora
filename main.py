@@ -1,7 +1,5 @@
-from app import calculator
-
-
+from app import Application
 
 if __name__ == "__main__":
-    app = calculator.Application()
+    app = Application()
     app.start()

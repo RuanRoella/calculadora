@@ -1,6 +1,6 @@
-# Calculadora v1.0
+# Calculadora
 
 ## Calculadora Criada com Tkinter
 
 
-![Calculadora](https://github.com/RuanRoella/calculadora/blob/main/assets/calculadora.jpg?raw=true)
+![Calculadora](https://github.com/RuanRoella/calculadora/blob/main/assets/images/calculadora.jpg?raw=true)

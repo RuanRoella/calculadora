@@ -1,16 +1,14 @@
-from configparser import ConfigParser
-from pathlib import Path
-
+from typing import Union
 import re
 
-KEYBOARD = [["%", "CE", "C", "\u232B"],
-            ["¹/\u02E3", "\u02E3²", "²\u221A\u02E3", "\u00F7"],
-            ["7", "8", "9", 'x'],
-            ["4", "5", "6", "-"],
-            ["1", "2", "3", "+"],
-            ["←", "0", ",", "="]]
+def format_number(num: str) -> Union[int, bool]:
 
+    num = float(num.replace(',', '.'))
 
+    if num % 1 == 0:
+        return int(num)
+    else:
+        return float(num)
 
 class Calculator:
     
@@ -44,10 +42,10 @@ class Calculator:
                 result = {"display": int(calc), 'preview': prev}
             else:
                 point = len(str(calc).split('.')[-1] )
-                format = "%.{0}f".format(point if point <= 14 else 14) % calc
+                format = "%.{0}f".format(point if point <= 12 else 12) % calc
 
                 result = {"display": format.replace('.', ','), 'preview': prev}
-            
+
             return result
 
     def get_porcent(self, display, preview):
@@ -61,19 +59,19 @@ class Calculator:
             exp = re.compile('|'.join('(?:{})'.format(re.escape(i)) for i in sorted(operators, reverse=True, key=len)))
             op = exp.search(preview).group()
             
-            _all = preview.split(op)[0].strip()
+            _all = preview.split(op)[0].strip().replace(',', '.')
             _part = display.replace(',', '.')
 
             # % = (Parte / Todo) x 100
             porc = (float(_part) * float(_all)) / 100
 
             result = str(porc).replace('.', ',')
-            new_expression = "%s%s" % (preview, porc)
+            new_expression = "%s%s" % (preview, result)
 
         return { "display": result, "preview": new_expression }
         
     def eval(self, display, preview):
-
+        
         try:
             value = self._normalizate_expression(display, preview)
         except ZeroDivisionError:
@@ -82,7 +80,10 @@ class Calculator:
             return value
         
     def _normalizate_expression(self, display: str, preview: str):
-        
+
+        if preview == "":
+            return
+
         operators = ['+', '-', 'x', '÷']
 
         exp = re.compile('|'.join('(?:{})'.format(re.escape(i)) for i in sorted(operators, reverse=True, key=len)))
@@ -99,38 +100,14 @@ class Calculator:
                     _op = "*"
                 else:
                     _op = op
-                _new_exp = "%s%s%s" % (_split_exp[0].strip(), _op, display)
+                _new_exp = "%s%s%s" % (_split_exp[0].strip(), _op, float(display.replace(',', '.')))
         
         result = eval(_new_exp)
         point = len(str(result).split('.')[-1] )
-#
+
         if isinstance(result, int):
-            return result
+            return { "display": result, "preview": display }
         
         value = "%.{0}f".format(point if point <= 14 else 14) % result
-        return value.replace('.', ',')
+        return { "display": value.replace('.', ','), "preview": display }
 
-
-
-class Dict(dict):
-    def __init__(self, *args, **kwargs):
-        super(Dict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-    
-    def __getattribute__(self, name: str):
-        try:
-            if isinstance(name, str):
-                return super().__getattribute__(name)
-        except AttributeError:
-            pass
-
-
-class Settings:
-    data = Path(r'app\DATA.ini')
-
-    config = ConfigParser(dict_type=Dict)
-
-    config.read(data)
-
-    def __new__(cls):
-        return cls.config._sections

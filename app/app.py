@@ -1,54 +1,57 @@
 import tkinter as tk
-import re
-from .core import KEYBOARD
-from .core import Settings
-from .core import Calculator
+import os
+
+from .core import *
+
 
 class Application(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.calculate = Calculator()
-        self.set = Settings()
+        self.set = JsonParser()
+        self.theme = self._themes(self.set.current_theme)
         self.setup()
         self.key_up = []
 
-        main_frame = tk.Frame(bg=self.set.main.background)
+        main_frame = tk.Frame(bg=self.theme.background)
         main_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
 
         self.prev_var = tk.StringVar()
-        self.preview = tk.Entry(main_frame, textvariable=self.prev_var, cnf=self.set.preview)
+        self.preview = tk.Entry(main_frame, textvariable=self.prev_var, cnf=self.theme.preview)
         self.preview.pack(side=tk.TOP, fill=tk.X, padx=2, pady=(2, 0), ipady=2)
+#       
 
-        self.display = tk.Entry(main_frame, cnf=self.set.display)
+        self.display = tk.Entry(main_frame, cnf=self.theme.display)
         self.display.insert(0,0)
         self.display.pack(side=tk.TOP, padx=2, pady=0, ipady=2)
 
-        buttons = tk.Frame(main_frame, bg=self.set.main.background)
+        buttons = tk.Frame(main_frame, bg=self.set.setup.background)
         buttons.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=2, pady=(0, 2))
 
         self.btns = {}
-        for r in range(len(KEYBOARD)):
+        for r in range(len(keyboard.DEFAULT)):
             buttons.rowconfigure(r+1, weight=1)
-            for c in range(len(KEYBOARD[r])):
+            for c in range(len(keyboard.DEFAULT[r])):
                 buttons.columnconfigure(c, weight=1)
 
-                self.btns[f'btn_{str(KEYBOARD[r][c])}'] = tk.Button(buttons, text=str(KEYBOARD[r][c]), cnf=self.set.button)
-                self.btns[f'btn_{str(KEYBOARD[r][c])}'].bind('<ButtonPress>', self.button_command)
-                self.btns[f'btn_{str(KEYBOARD[r][c])}'].grid(row=r+1, column=c, padx=(1, 0), pady=(1, 0), sticky=tk.NSEW)
+                self.btns[f'btn_{str(keyboard.DEFAULT[r][c])}'] = tk.Button(buttons, text=str(keyboard.DEFAULT[r][c]), cnf=self.theme.buttons)
+                self.btns[f'btn_{str(keyboard.DEFAULT[r][c])}'].bind('<ButtonPress>', self.button_command)
+                self.btns[f'btn_{str(keyboard.DEFAULT[r][c])}'].grid(row=r+1, column=c, padx=(1, 0), pady=(1, 0), sticky=tk.NSEW)
 
-        self.btns['btn_='].config(cnf=self.set.button_equal)
+        self.btns['btn_='].config(cnf=self.theme.equal_button)
         # Undefined Button
-        self.btns['btn_←'].configure(state='disabled', background="#dddddd")
+        self.btns['btn_'].configure(cnf=self.theme.disabled_button)
 
 
     def button_command(self, e):
+        
+        if e.widget.cget('state') == "disabled":
+            return
 
         button = e.widget.cget('text')
-
-        self.key_up.append(button)
-
-        last_key = self.key_up[-1]
         
+        last_key = button
+
         if last_key in ["\u00F7", 'x', '-', '+']:
             self.set_operators(last_key)
         elif last_key in [str(i) for i in range(10)]:
@@ -71,24 +74,26 @@ class Application(tk.Tk):
             self.prev_var.set(result['preview'])
         elif last_key == "=":
             result = self.calculate.eval(self.display.get(), self.prev_var.get())
-            self.display.delete(0, tk.END)
-            self.display.insert(0, result)
-            self.prev_var.set("%s%s =" % (self.prev_var.get(), self.display.get()))
+            
+            if result:
+                self.display.delete(0, tk.END)
+                self.display.insert(0, result['display'])
+                self.prev_var.set("%s%s =" % (self.prev_var.get(), result['preview']))
 
 
-    def display_numeric(self, value: int):
-
-        if len(self.display.get()) > 14:
+    def display_numeric(self, value: str):
+        
+        if len(self.display.get()) > 12:
             return
-
+        
         if self.display.get() == "0":
             self.display.delete(0)
-       
-        if len(self.key_up) > 1:
-            
-            if self.key_up[-2] in ["\u00F7", 'x', '-', '+']:
+
+        if len(self.key_up) > 0:
+            if self.key_up[-1] in ["\u00F7", 'x', '-', '+']:
                 self.display.delete(0, tk.END)
         
+        self.key_up.append(value)
         self.display.insert(tk.END, value)
 
     def set_backspace(self):
@@ -110,16 +115,16 @@ class Application(tk.Tk):
         if self.display.get() == "0":
             return
 
-        value = self.display.get()
+        self.key_up.append(operator)
+        
+        value = format_number(self.display.get())
 
-        _split_value = value.split(',')
-        if _split_value[-1] in ['', "0"]:
-            self.display.delete(0, tk.END)
-            self.display.insert(0, _split_value[0])
-            value = _split_value[0]
+        _format_value = str(value).replace('.', ',')
 
-        self.prev_var.set("%s %s " % (value, operator))
-    
+        self.display.delete(0, tk.END)
+        self.display.insert(0, _format_value)
+        self.prev_var.set("%s %s " % (_format_value, operator))
+
     def set_float_point(self):
         
         if self.display.get().find(',') > 0:
@@ -127,7 +132,7 @@ class Application(tk.Tk):
 
         # Last value of the display
         value = self.display.get()[-1]
-
+        
         point = ","
 
         if value == ",":
@@ -144,6 +149,8 @@ class Application(tk.Tk):
         
     def clean_data(self, btn):
         
+        self.key_up.clear()
+
         if btn == "CE":
             self.display.delete(0, tk.END)
             self.display.insert(0, 0)
@@ -152,14 +159,21 @@ class Application(tk.Tk):
             self.prev_var.set("")
             self.display.insert(0, 0)
 
+    def _themes(self, name: str):
+
+        themes = self.set.themes
+        for theme in themes:
+            if theme.name == name:
+                return theme
+
     def setup(self):
         
-        self.wm_iconbitmap(default=r'assets\calculator.ico')
+        self.wm_iconbitmap(default=os.path.join('assets', 'images', self.set.setup.icon))
         
-        self.wm_title('Calculadora')
+        self.wm_title(self.set.setup.title)
 
-        width = 300
-        height = 400
+        width = self.set.setup.width
+        height = self.set.setup.height
 
         w_screen = self.winfo_screenwidth()
         h_screen = self.winfo_screenheight()
