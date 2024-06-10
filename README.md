@@ -7,6 +7,7 @@
         <img src="https://img.shields.io/badge/download-latest-brightgreen.svg" alt="download">
     </a>
 </div>
+
 # Sobre o Projeto
 Uma calculadora criada com Tkinter em Python, com o intuito de mesclar meu aprendizado em **git** e **gitHub**
 ao mesmo tempo me aperfeiçoando em **lógica de programção**.
