@@ -2,6 +2,7 @@ import tkinter as tk
 import os
 
 from .core import *
+from .core import keyboard
 
 
 class Application(tk.Tk):
@@ -74,7 +75,6 @@ class Application(tk.Tk):
             self.prev_var.set(result['preview'])
         elif last_key == "=":
             result = self.calculate.eval(self.display.get(), self.prev_var.get())
-            
             if result:
                 self.display.delete(0, tk.END)
                 self.display.insert(0, result['display'])
@@ -83,14 +83,15 @@ class Application(tk.Tk):
 
     def display_numeric(self, value: str):
         
-        if len(self.display.get()) > 12:
+        if len(self.display.get()) > 13:
             return
         
         if self.display.get() == "0":
             self.display.delete(0)
 
         if len(self.key_up) > 0:
-            if self.key_up[-1] in ["\u00F7", 'x', '-', '+']:
+            if (self.key_up[-1] in ["\u00F7", 'x', '-', '+'] and
+                self.display.get() != "0,"):
                 self.display.delete(0, tk.END)
         
         self.key_up.append(value)
@@ -118,7 +119,7 @@ class Application(tk.Tk):
         self.key_up.append(operator)
         
         value = format_number(self.display.get())
-
+        
         _format_value = str(value).replace('.', ',')
 
         self.display.delete(0, tk.END)
@@ -127,23 +128,15 @@ class Application(tk.Tk):
 
     def set_float_point(self):
         
-        if self.display.get().find(',') > 0:
+        if (self.display.get().find(',') > 0 and
+            self.key_up[-1] not in ["\u00F7", 'x', '-', '+']
+        ):
             return
-
-        # Last value of the display
-        value = self.display.get()[-1]
-        
-        point = ","
-
-        if value == ",":
-            return
-        elif value in ["\u00F7", 'x', '-', '+']:
+        elif float(self.display.get()) > 0:
+            point = ","
+        else:
             self.display.delete(0, tk.END)
             point = "0,"
-        elif len(self.key_up) > 1:
-            if self.key_up[-2] in ["\u00F7", 'x', '-', '+']:
-                self.display.delete(0, tk.END)
-                point = "0,"
 
         self.display.insert(tk.END, point)
         
@@ -168,7 +161,7 @@ class Application(tk.Tk):
 
     def setup(self):
         
-        self.wm_iconbitmap(default=os.path.join('assets', 'images', self.set.setup.icon))
+        self.wm_iconbitmap(default=self.set.setup.icon)
         
         self.wm_title(self.set.setup.title)
 

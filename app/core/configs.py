@@ -1,8 +1,6 @@
 from pathlib import Path
 from json import loads
 
-
-
 class Dict(dict):
     def __init__(self, *args, **kwargs):
         super(Dict, self).__init__(*args, **kwargs)
@@ -19,7 +17,7 @@ class Dict(dict):
 
 
 class JsonParser:
-    data = Path(r'assets\data\settings.json')
+    data = Path(r'data\settings.json')
 
     json_file = open(data, 'r', encoding='utf-8').read()
     config = loads(json_file, object_hook=lambda dict: Dict(**dict))

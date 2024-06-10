@@ -8,7 +8,9 @@ def format_number(num: str) -> Union[int, bool]:
     if num % 1 == 0:
         return int(num)
     else:
-        return float(num)
+        point = len(str(num).split('.')[-1])
+        value = "%.{0}f".format(point if point <= 12 else 12) % num
+        return float(value)
 
 class Calculator:
     
@@ -100,14 +102,11 @@ class Calculator:
                     _op = "*"
                 else:
                     _op = op
-                _new_exp = "%s%s%s" % (_split_exp[0].strip(), _op, float(display.replace(',', '.')))
-        
-        result = eval(_new_exp)
-        point = len(str(result).split('.')[-1] )
+                _new_exp = "%s%s%s" % (_split_exp[0].strip().replace(',', '.'), _op, display.replace(',', '.'))
 
-        if isinstance(result, int):
-            return { "display": result, "preview": display }
-        
-        value = "%.{0}f".format(point if point <= 14 else 14) % result
-        return { "display": value.replace('.', ','), "preview": display }
+        _calc = eval(_new_exp)
+        value = format_number(str(_calc))
+
+        prev = format_number(display)
+        return { "display": str(value).replace('.', ','), "preview": str(prev).replace('.', ',') }
 
